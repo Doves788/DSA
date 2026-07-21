@@ -1,29 +1,33 @@
 class Solution {
 public:
-    vector<vector<int>> dp;
-    vector<vector<int>> charPos;
-    int solve(int ringPos, int keyPos, string &ring, string &key) {
-        if (keyPos == key.size()) return 0;
-        if (dp[ringPos][keyPos] != -1) return dp[ringPos][keyPos];
-        int n = ring.size();
-        int minSteps = INT_MAX;
-        for (int nextPos : charPos[key[keyPos] - 'a']) {
-            int dist = abs(ringPos - nextPos);
-            int rotate = min(dist, n - dist);
-            minSteps = min(minSteps,
-                           rotate + 1 + solve(nextPos, keyPos + 1, ring, key));
-        }
-        return dp[ringPos][keyPos] = minSteps;
+    int findRotateSteps(string ring, string key) {
+        unordered_map<int, unordered_map<int, int>> bestSteps;
+        return tryLock(0, 0, ring, key, INT_MAX, bestSteps);
     }
 
-    int findRotateSteps(string ring, string key) {
-        int n = ring.size();
-        int m = key.size();
-        charPos.assign(26, {});
-        for (int i = 0; i < n; i++) {
-            charPos[ring[i] - 'a'].push_back(i);
+private:
+    int countSteps(int curr, int next, int ringLength) {
+        int stepsBetween = abs(curr - next);
+        int stepsAround = ringLength - stepsBetween;
+        return min(stepsBetween, stepsAround);
+    }
+
+    int tryLock(int ringIndex, int keyIndex, string ring, string key, int minSteps,
+                unordered_map<int, unordered_map<int, int>>& bestSteps) {
+        if (bestSteps[ringIndex][keyIndex]) {
+            return bestSteps[ringIndex][keyIndex];
         }
-        dp.assign(n, vector<int>(m, -1));
-        return solve(0, 0, ring, key);
+        if (keyIndex == key.length()) {
+            return 0;
+        }
+        for (int charIndex = 0; charIndex < ring.length(); charIndex++) {
+            if (ring[charIndex] == key[keyIndex]) {
+                int totalSteps = countSteps(ringIndex, charIndex, ring.length()) + 1
+                                            + tryLock(charIndex, keyIndex + 1, ring, key, INT_MAX, bestSteps);
+                minSteps = min(minSteps, totalSteps);
+                bestSteps[ringIndex][keyIndex] = minSteps;
+            }
+        }
+        return minSteps;
     }
 };
