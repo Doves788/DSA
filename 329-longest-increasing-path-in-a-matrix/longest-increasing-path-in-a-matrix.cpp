@@ -1,53 +1,42 @@
-#include <vector>
-#include <algorithm>
-using namespace std;
-
 class Solution {
-    int m, n;
-    const int dirs[4][2] = {{-1,0}, {1,0}, {0,-1}, {0,1}};
-
-    int dfs(const vector<vector<int>>& matrix, int r, int c, vector<vector<int>>& memo) {
-        if(memo[r][c] != 0) {
-            return memo[r][c];
-        }
-
-        int max_path = 1;
-
-        for(int i = 0; i < 4; i++) {
-            int next_r = r + dirs[i][0];
-            int next_c = c + dirs[i][1];
-
-            if(next_r >= 0 && next_r < m &&
-               next_c >= 0 && next_c < n &&
-               matrix[next_r][next_c] > matrix[r][c]) {
-
-                max_path = max(max_path, 1 + dfs(matrix, next_r, next_c, memo));
-            }
-        }
-
-        memo[r][c] = max_path;
-        return max_path;
-    }
-
 public:
+    int m, n;
+    short path[200][200];
+    
     int longestIncreasingPath(vector<vector<int>>& matrix) {
-        if(matrix.empty() || matrix[0].empty()) {
-            return 0;
-        }
-
         m = matrix.size();
         n = matrix[0].size();
 
-        vector<vector<int>> memo(m, vector<int>(n, 0));
+        memset(path, 0, sizeof(path));
+    
+        int max_path = 1;
+        for(int i = 0; i < m; i++)
+            for(int j = 0; j < n; j++)
+                max_path = max(max_path, dfs(i, j, matrix));
 
-        int longest_path = 0;
+        return max_path;
+    }
 
-        for(int i = 0; i < m; i++) {
-            for(int j = 0; j < n; j++) {
-                longest_path = max(longest_path, dfs(matrix, i, j, memo));
-            }
-        }
+    int dfs(int i, int j, vector<vector<int>>& mat) {
+        if(path[i][j] >   0) return path[i][j];
+        if(path[i][j] == -1) return 0;
+        int max_next = 0;
+        path[i][j] = -1;
+        if(i > 0   && mat[i][j] < mat[i-1][j]) max_next = max(max_next, dfs(i-1, j, mat));
+        if(j > 0   && mat[i][j] < mat[i][j-1]) max_next = max(max_next, dfs(i, j-1, mat));
+        if(i < m-1 && mat[i][j] < mat[i+1][j]) max_next = max(max_next, dfs(i+1, j, mat));
+        if(j < n-1 && mat[i][j] < mat[i][j+1]) max_next = max(max_next, dfs(i, j+1, mat));
+        return path[i][j] = 1 + max_next;
+    }
 
-        return longest_path;
+public:
+    Solution() {
+        ios_base::sync_with_stdio(false);
+        cin.tie(nullptr);
+        wcin.tie(nullptr);
+        cerr.tie(nullptr);
+        wcerr.tie(nullptr);
+        clog.tie(nullptr);
+        wclog.tie(nullptr);
     }
 };
